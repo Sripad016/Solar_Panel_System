@@ -1,0 +1,10 @@
+Calibration_dataset/
+*.onnx
+*.mp4
+*.sima
+solar_panel_yolov8n_seg_modalix/
+build_cut/
+__pycache__/
+**/__pycache__/
+pipeline/output/
+fps_test/

@@ -1,0 +1,65 @@
+# Solar panel RTSP -> SiMa Modalix -> laptop UDP pipeline.
+# Relative paths are resolved from this config file's directory.
+deployment:
+  devkit_ip: 192.168.1.20
+
+model:
+  path: ../build_cut/best_cut/best_cut_mpk.tar.gz
+  labels: labels.txt
+  # Downscale 1080p camera frames before model input copies and host decoding.
+  max_input_width: 1280
+
+# Detection-only COCO model. COCO class IDs: person=0, dog=16, sheep=18,
+# cow=19, bear=21. This is a second inference pass over each camera frame.
+animal_model:
+  enabled: true
+  path: ../yolo_v8n_mpk.tar.gz
+  class_ids: [0, 16, 18, 19, 21]
+  score_threshold: 0.35
+  nms_iou_threshold: 0.45
+  max_detections: 30
+
+# Polygon points are normalized [x,y] coordinates relative to the video frame.
+# Fill these clockwise or counter-clockwise after selecting the panel boundary.
+intrusion_zone:
+  zone_polygon_normalized: []
+  zone_margin_pixels: 60
+  class_ids: [0, 16, 18, 19, 21]
+
+io:
+  rtsp_url: rtsp://192.168.1.10:5005/routecam
+  rtsp_transport: udp
+  snapshot_dir: output
+
+decode:
+  score_threshold: 0.50
+  nms_iou_threshold: 0.45
+  max_detections: 10
+  pre_nms_top_k_per_class: 50
+  # The model has animal classes, but this project only targets panel conditions.
+  allowed_classes:
+    - Bird-drop
+    - Defective
+    - Dusty
+    - Electrical-Damage
+    - Non-Defective
+    - Physical-Damage
+    - Snow
+
+output:
+  overlay: true
+  metadata:
+    enabled: true
+    fps_window_frames: 30
+    # DevKit UTC clock correction measured on 2026-11-11; set to 0 after NTP sync.
+    timestamp_utc_offset_seconds: 18286992
+  mask_alpha: 0.50
+  mask_threshold: 0.50
+  udp_host: 192.168.1.5
+  udp_port: 5000
+  max_fps: 30
+  max_width: 1280
+  bitrate_kbps: 5000
+  rtp_payload_type: 96
+  rtp_mtu: 1200
+  snapshot_interval_seconds: 30
